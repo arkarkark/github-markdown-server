@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift("#{File.dirname(File.dirname(__FILE__))}/lib")
+$LOAD_PATH.unshift("#{File.dirname(File.dirname(__FILE__))}/../github-markdown-preview/lib")
+
+require 'github-markdown-server'
+require 'optparse'
+
+comment_mode = false
+server_port = 8000
+browser = true
+opt_parser = OptionParser.new do |opt|
+  opt.banner = "Usage: github-markdown-server DIRECTORY"
+  opt.separator  ""
+  opt.separator  "Options"
+
+  opt.on("-c", "--comment-mode", "renders a preview for Github comments/issues") do
+    comment_mode = true
+  end
+
+  opt.on("-p=", "--port=", "start webserver listening on this port") do |port|
+    server_port = port unless port.nil?
+  end
+
+  opt.on("-n", "--nobrowser", "don't open initial file in browser when you start a server") do
+    browser = false
+  end
+
+  opt.on("-v", "--version", "print the version") do
+    $stdout.puts 'github-markdown-server version ' + GithubMarkdownServer::VERSION
+    Kernel.exit
+  end
+end
+
+opt_parser.parse!
+
+directory = ARGV.at(0) || '.'
+options = {
+  :comment_mode => comment_mode,
+  :server_port => server_port,
+  :browser => browser,
+  :directory => directory,
+}
+GithubMarkdownServer::Server.new(options)
