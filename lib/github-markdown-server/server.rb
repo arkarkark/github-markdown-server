@@ -1,5 +1,6 @@
 require 'github-markdown-preview'
 require 'pathname'
+require 'tempfile'
 require 'webrick'
 
 
@@ -31,8 +32,6 @@ module GithubMarkdownServer
       end
       server = WEBrick::HTTPServer.new(server_options)
 
-      @md2html = GithubMarkdownPreview::HtmlPreview.new(nil, options)
-
       trap 'INT' do server.shutdown end
       server.mount_proc '/' do |req, res|
         if req.path == '/favicon.ico'
@@ -47,8 +46,7 @@ module GithubMarkdownServer
           livejs = "<script>\n#{IO.read(Resources.expand_path(File.join('js','live.js')))}\n</script>"
 
           if source_file.end_with? '.md'
-            @md2html.source_file = source_file
-            res.body = @md2html.update
+            res.body = md2html(source_file)
             res.body += livejs
           elsif File.directory?(source_file)
             directory = source_file
@@ -64,10 +62,9 @@ module GithubMarkdownServer
               bonus = nil
               readme = File.join(directory, '/README.md')
               if File.exists?(readme)
-                @md2html.source_file = readme
-                bonus = "<hr>#{@md2html.update}"
+                bonus = md2html(readme)
               else
-                bonus = @md2html.wrap_preview('')
+                bonus = emptystyles
               end
               res.body = directory_listing(directory, req.path == '/', bonus)
             end
@@ -80,6 +77,19 @@ module GithubMarkdownServer
 
       puts "Starting server #{url}"
       server.start
+    end
+
+
+    def md2html(file)
+      out = Tempfile.new(File.basename(file))
+      GithubMarkdownPreview::HtmlPreview.new(file, {:preview_file => out.path})
+      IO.read(out.path)
+    end
+
+    def emptystyles
+      file = Tempfile.new('')
+      out = Tempfile.new('')
+      GithubMarkdownPreview::HtmlPreview.new(file, {:preview_file => out.path}).wrap_preview('')
     end
 
     def directory_listing(dir, root, bonus)
@@ -98,7 +108,10 @@ module GithubMarkdownServer
       body += mds.join('') unless mds.empty?
 
       body += '</ul>'
-      body += "#{bonus}" if bonus
+      if bonus
+        sep = '<div class="readme-content">'
+        body = bonus.sub!(sep, (body + sep))
+      end
       body
     end
 

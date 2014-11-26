@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 $LOAD_PATH.unshift("#{File.dirname(File.dirname(__FILE__))}/lib")
-$LOAD_PATH.unshift("#{File.dirname(File.dirname(__FILE__))}/../github-markdown-preview/lib")
 
 require 'github-markdown-server'
 require 'optparse'
