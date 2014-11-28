@@ -1,0 +1,116 @@
+#!/usr/bin/python
+# Created by: Alex K (wtwf.com)Tue Dec  7 16:50:41 2004
+# Last Modified: Time-stamp: <Thu Nov 27 03:08:53 PST 2014>
+
+"""
+Turn a path into an absolute path or url.
+
+-g, --git print out the root directory of this git repository
+-h, --help print out this message
+-p, --path show a full absolute path to the file
+-t, --trim do not append a newline to the file
+-u, --url show a url to the file (https://github.com/... or file:///)
+-s, --server show a utl to a local github-markdown-server
+--port use this port for github-markdown-server url (default 7474)
+--host use this host for github-markdown-server url (default localhost)
+"""
+
+__author__ = 'wtwf.com (Alex K)'
+
+import getopt
+import logging
+import os
+import re
+import sys
+
+def Usage(code, msg=''):
+  """Show a usage message."""
+  if code:
+    fd = sys.stderr
+  else:
+    fd = sys.stdout
+  PROGRAM = os.path.basename(sys.argv[0]) # pylint: disable=invalid-name,unused-variable
+  print >> fd, __doc__ % locals()
+  if msg:
+    print >> fd, msg
+  sys.exit(code)
+
+def Main():
+  """Run."""
+  logging.basicConfig()
+  logging.getLogger().setLevel(logging.DEBUG)
+  try:
+    opts, args = getopt.getopt(sys.argv[1:], 'ghpstu',
+                               'git,help,host=,path,port=,server,trim,url'.split(','))
+  except getopt.error, msg:
+    Usage(1, msg)
+
+  if not args:
+    Usage(1)
+
+  output = 'path'
+  trim = False
+  port = 7474
+  host = 'localhost'
+  for opt, arg in opts:
+    if opt in ('-g', '--git'):
+      output = 'git'
+    if opt in ('-h', '--help'):
+      Usage(0)
+    if opt in ('--host',):
+      host = arg
+    if opt in ('-p', '--path'):
+      output = 'path'
+    if opt in ('--port',):
+      port = int(arg)
+    if opt in ('-s', '--server'):
+      output = 'github-markdown-server'
+    if opt in ('-t', '--trim'):
+      trim = True
+    if opt in ('-u', '--url'):
+      output = 'url'
+
+  for arg in args:
+    arg = os.path.abspath(arg)
+    if output != 'path':
+      arg = ConvertToUrl(arg, output, port, host)
+    if trim:
+      sys.stdout.write(arg)  # for python 3 we could do print(arg, end='',flush=True)
+    else:
+      print arg
+
+def ConvertToUrl(arg, output, port, host):
+  """Try to turn this into a url."""
+  directory = arg
+  base_url = None
+  while directory != '/' and not base_url:
+    directory = os.path.dirname(directory)
+    config_filename = os.path.join(directory, '.git', 'config')
+    if os.path.exists(config_filename):
+      if output == 'git':
+        return directory
+      for line in open(config_filename):
+        match = re.search(r'url = git@github.com:(.*)\.git', line)
+        if match:
+          base_url = 'https://github.com/%s/blob/master/' % match.group(1)
+          break
+
+  if output == 'git':
+    return ''
+  if output == 'github-markdown-server':
+    if base_url:
+      basename = arg[len(directory) + 1:]
+      arg = 'http://%s:%d/%s' % (host, port, basename)
+    else:
+      basename = os.path.basename(arg)
+      arg = 'http://%s:%d/%s' % (host, port, basename)
+  else:
+    if base_url:
+      arg = base_url + arg[len(directory) + 1:]
+    else:
+      arg = 'file://' + arg
+
+  return arg
+
+if __name__ == '__main__':
+  Main()
