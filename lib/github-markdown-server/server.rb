@@ -10,14 +10,16 @@ module GithubMarkdownServer
   # Serves files and converts markdown to github like html (with live.js as well).
   class Server
     def initialize(options = {})
-      port = options[:port] || 8000
+      port = options[:server_port] || 8000
       @directory = File.expand_path(options[:directory])
+      @file_name = File.expand_path(options[:file_name])
       url = "http://localhost:#{port}/"
 
       if !File.directory?(@directory)
-        url += File.basename(@directory)
         @directory = File.dirname(@directory)
       end
+
+      url += @file_name[@directory.length + 1..-1]
 
       server_options = {
         :Port => port,

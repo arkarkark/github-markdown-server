@@ -8,21 +8,26 @@ require 'optparse'
 comment_mode = false
 server_port = 8000
 browser = true
+directory = nil
 opt_parser = OptionParser.new do |opt|
   opt.banner = "Usage: github-markdown-server DIRECTORY"
   opt.separator  ""
   opt.separator  "Options"
 
+  opt.on("-b", "--[no-]browser", "don't open initial file in browser when you start a server") do |b|
+    browser = b
+  end
+
   opt.on("-c", "--comment-mode", "renders a preview for Github comments/issues") do
     comment_mode = true
   end
 
-  opt.on("-p=", "--port=", "start webserver listening on this port") do |port|
-    server_port = port unless port.nil?
+  opt.on("-d=", "--directory=", "start webserver listening on this port") do |dir|
+    directory = dir
   end
 
-  opt.on("-n", "--nobrowser", "don't open initial file in browser when you start a server") do
-    browser = false
+  opt.on("-p=", "--port=", "start webserver listening on this port") do |port|
+    server_port = port unless port.nil?
   end
 
   opt.on("-v", "--version", "print the version") do
@@ -33,11 +38,14 @@ end
 
 opt_parser.parse!
 
-directory = ARGV.at(0) || '.'
+file_name = ARGV.at(0) || '.'
+directory = directory || file_name
 options = {
   :comment_mode => comment_mode,
   :server_port => server_port,
   :browser => browser,
   :directory => directory,
+  :file_name => file_name,
 }
+p "go on #{server_port}"
 GithubMarkdownServer::Server.new(options)
