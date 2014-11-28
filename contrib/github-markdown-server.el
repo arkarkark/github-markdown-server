@@ -58,9 +58,11 @@
               (setq github-markdown-server-port (+ github-markdown-server-port 1))))))))
 
 (defun view-file-in-browser (&optional file-name)
-  "Open up FILE-NAME (or the current buffer) on github or via a local markdown server."
+  "Open up file on github or via a local markdown server.
+FILE-NAME will be current buffer if not specified.
+Prefix arg \[universal-argument] to not run local server."
   (interactive (list (buffer-file-name)))
-  (if (string-match "\.md$" file-name)
+  (if (and (not current-prefix-arg) (string-match "\.md$" file-name))
     (github-markdown-serve file-name)
     (call-process-shell-command
       (concat "open "
