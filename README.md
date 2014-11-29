@@ -3,7 +3,10 @@
 Use your favorite editor to edit a markdown file, Run the server and open the file.
 Saving in your editor updates instantly in the browser.
 
-github-markdown-server is built on top of [github-markdown-preview](https://github.com/dmarcotte/github-markdown-preview).
+github-markdown-server is built on top of [github-markdown-preview](https://github.com/dmarcotte/github-markdown-preview) and [live.js](http://www.livejs.com/).
+
+[![Gem Version](https://badge.fury.io/rb/github-markdown-server.svg)](http://badge.fury.io/rb/github-markdown-server)
+
 
 ## Installation
 
