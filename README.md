@@ -5,6 +5,12 @@ Saving in your editor updates instantly in the browser.
 
 github-markdown-server is built on top of [github-markdown-preview](https://github.com/dmarcotte/github-markdown-preview).
 
+## Installation
+
+```shell
+gem install github-markdown-server
+```
+
 ## Usage
 
 ```shell
