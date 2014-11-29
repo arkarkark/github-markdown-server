@@ -23,8 +23,6 @@ github-markdown-server -d $(git rev-parse --show-toplevel) somefile.md
 
 There is a [contrib](contrib/) directory with an emacs lisp file which will start a server and open a file for you. It'll keep track of which servers it has started and reuse an existing server if a file you want to preview is under that server's serving directory.
 
-There is also a small python script (called `p`) which will work with files and produce paths and urls.
-
 ## Contributing
 
 Please feel free to send me pull requests! This is my first Ruby project and it always feels like my first time when I write Emacs Lisp.
