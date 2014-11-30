@@ -47,5 +47,4 @@ options = {
   :directory => directory,
   :file_name => file_name,
 }
-p "go on #{server_port}"
 GithubMarkdownServer::Server.new(options)

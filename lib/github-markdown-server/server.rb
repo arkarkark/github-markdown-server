@@ -16,10 +16,10 @@ module GithubMarkdownServer
       url = "http://localhost:#{port}/"
 
       if !File.directory?(@directory)
-        @directory = File.dirname(@directory)
+        @directory = File.dirname(@file_name)
       end
 
-      url += @file_name[@directory.length + 1..-1]
+      url = url + @file_name[@directory.length + 1..-1] if @file_name != @directory
 
       server_options = {
         :Port => port,
