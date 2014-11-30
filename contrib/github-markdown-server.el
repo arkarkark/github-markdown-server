@@ -54,8 +54,8 @@
                        (concat "lsof -n -i4TCP:" (number-to-string github-markdown-server-port) " | grep LISTEN"))))
                 (setq github-markdown-server-port (+ github-markdown-server-port 1)))
 
-              (message (concat "starting github-markdown-server on port:" (number-to-string (cdr server))))
-              (setq server (cons base github-markdown-server-port))))
+              (setq server (cons base github-markdown-server-port)))
+              (message (concat "starting github-markdown-server on port:" (number-to-string (cdr server)))))
           (call-process-shell-command
             (concat "github-markdown-server"
               " --directory=" (shell-quote-argument (car server))

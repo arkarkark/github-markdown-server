@@ -6,7 +6,7 @@ Saving in your editor updates instantly in the browser.
 github-markdown-server is built on top of [github-markdown-preview](https://github.com/dmarcotte/github-markdown-preview) and [live.js](http://www.livejs.com/).
 
 [![Gem Version](https://badge.fury.io/rb/github-markdown-server.svg)](http://badge.fury.io/rb/github-markdown-server)
-
+[![Build Status](https://travis-ci.org/arkarkark/github-markdown-server.svg)](https://travis-ci.org/arkarkark/github-markdown-server)
 
 ## Installation
 
