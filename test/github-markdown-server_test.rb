@@ -7,13 +7,13 @@ class TestBin < Minitest::Test
 
   def test_bad_params
     IO.popen("bundle exec #{@gms_scipt} --nonsense") do |io|
-      assert_match /.*invalid option: --nonsense.*/, io.read, 'invalid option: --nonsense'
+      assert_match(/.*invalid option: --nonsense.*/, io.read, 'invalid option: --nonsense')
     end
   end
 
   def test_version_ouput
     IO.popen("bundle exec #{@gms_scipt} -v") do |io|
-      assert_match GithubMarkdownServer::VERSION, io.read, '-v call should output version'
+      assert_match(GithubMarkdownServer::VERSION, io.read, '-v call should output version')
     end
   end
 end

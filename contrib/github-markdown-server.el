@@ -9,7 +9,6 @@
 
 (defvar github-markdown-servers '() "The servers we have running.")
 (defvar github-markdown-server-port 7494 "The next available server port.")
-(defvar github-markdown-server-browser "Google Chrome" "Application to use with osx's open -a to open files.")
 
 (defun git-base (&optional file-name)
   "Get the base of a git repository for FILE-NAME (or the current buffer)."
@@ -71,22 +70,31 @@
 (defun view-file-in-browser (&optional file-name)
   "Open up file on github or via a local markdown server.
 FILE-NAME will be current buffer if not specified.
-Prefix arg \[universal-argument] to not run local server."
+Prefix arg \[universal-argument] to not run local server for markdown files."
   (interactive (list (buffer-file-name)))
   (if (and (not current-prefix-arg) (string-match "\.md$" file-name))
     (github-markdown-serve file-name)
     (call-process-shell-command
-      (concat "open -a " (shell-quote-argument github-markdown-server-browser) " \"$("
+      ;; open it with the default webbrowser The Mac::InternetConfig stuff)
+      ;; open either on github or a local file (the remove.origin.url stuff)
+      (concat "open -a \"$(VERSIONER_PERL_PREFER_32_BIT=1 "
+        "perl -MMac::InternetConfig -le 'print +(GetICHelper \"http\")[1]')\" \"$("
         "perl -e 'use File::Basename; $f = shift @ARGV; $d = dirname($f); $b = basename($f); "
         "$o = `git -C $d config --get remote.origin.url`; "
-        "if ($o =~ qr(!git(@|://)github.com[:/]!)) { "
+        "if ($o =~ qr!git(@|://)github.com[:/]!) { "
         "  $o =~ s!git(@|://)github.com[:/](.*).git$!https://github.com/$2!; "
         "} else { $o = \"\" }"
         "$p = `git -C $d rev-parse --show-prefix`; "
         "chomp($o, $p); "
-        "if ($o) { print \"$o/blob/master/$p$b\n\"; } else { print \"file://$f\" }' "
-        (shell-quote-argument (buffer-file-name)) ")\"")
-    nil 0)))
+        "if ($o) { print \"$o/blob/master/$p$b\"; } else { print \"file://$f\" }' "
+        (shell-quote-argument (buffer-file-name)) ")#L"
+        (if (region-active-p)
+          (concat
+            (number-to-string (line-number-at-pos (region-beginning))) "-"
+            (number-to-string (line-number-at-pos (region-end))))
+          (number-to-string (line-number-at-pos)))
+          "\"")
+      nil 0)))
 
 (provide 'github-markdown-server)
 ;;; github-markdown-server ends here
