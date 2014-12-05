@@ -6,7 +6,7 @@ class TestBin < Minitest::Test
   end
 
   def test_bad_params
-    IO.popen("bundle exec #{@gms_scipt} --nonsense") do |io|
+    IO.popen("bundle exec #{@gms_scipt} --nonsense 2>&1") do |io|
       assert_match(/.*invalid option: --nonsense.*/, io.read, 'invalid option: --nonsense')
     end
   end
