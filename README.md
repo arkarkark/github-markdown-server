@@ -35,3 +35,13 @@ There is a [contrib](contrib/) directory with an emacs lisp file which will star
 ## Contributing
 
 Please feel free to send me pull requests! This is my first Ruby project and it always feels like my first time when I write Emacs Lisp.
+
+## Building
+
+I keep forgetting how to do this...
+
+```shell
+gem build github-markdown-server.gemspec
+gem install github-markdown-server-0.0.4.gem
+gem push github-markdown-server-0.0.4.gem
+```
