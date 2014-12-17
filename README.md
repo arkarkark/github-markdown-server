@@ -10,13 +10,13 @@ github-markdown-server is built on top of [github-markdown-preview](https://gith
 
 ## Installation
 
-```shell
+```bash
 gem install github-markdown-server
 ```
 
 ## Usage
 
-```shell
+```bash
 github-markdown-server README.md
 ```
 
@@ -24,7 +24,7 @@ This will start a server serving in the current directory and all child director
 
 If you are deep down inside a git repository and you want to serve the whole repository (so that relative links will work) then this command will do that for you.
 
-```shell
+```bash
 github-markdown-server -d $(git rev-parse --show-toplevel) somefile.md
 ```
 
@@ -35,13 +35,3 @@ There is a [contrib](contrib/) directory with an emacs lisp file which will star
 ## Contributing
 
 Please feel free to send me pull requests! This is my first Ruby project and it always feels like my first time when I write Emacs Lisp.
-
-## Building
-
-I keep forgetting how to do this...
-
-```shell
-gem build github-markdown-server.gemspec
-gem install github-markdown-server-0.0.4.gem
-gem push github-markdown-server-0.0.4.gem
-```
