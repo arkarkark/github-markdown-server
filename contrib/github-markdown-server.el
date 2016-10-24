@@ -13,6 +13,8 @@
 
 (require 'cl-lib)
 
+(autoload 'rvm-use-default "rvm" nil t)
+
 (defvar github-markdown-servers '() "The servers we have running.")
 (defvar github-markdown-server-port 7494 "The next available server port.")
 
@@ -30,6 +32,8 @@
 
 (defun github-markdown-server-start (directory port file-name)
   "Start a github-markdown-server for DIRECTORY on PORT and open FILE-NAME."
+  (rvm-use-default)
+  (setenv "LANG" "en_US.UTF-8")
   (let ((cmd (concat
                "github-markdown-server"
                " --directory=" (shell-quote-argument directory)
@@ -66,7 +70,7 @@ START-COMMAND the command to start a server."
                   (concat "lsof -n -i4TCP:" (number-to-string (cdr server)) " | grep LISTEN")))
               (> (length server-running) 0)))
         (progn
-          (message "reusing server")
+          (message (concat "reusing server"  (prin1-to-string (funcall path-name-fixer file-name (substring file-name (length (car server)))))))
           (call-process-shell-command
             (concat "open "
               (shell-quote-argument
@@ -96,19 +100,20 @@ START-COMMAND the command to start a server."
     (with-temp-buffer
       (insert-file-contents file-name)
       (goto-char (point-min))
-      (if (= (search-forward-regexp "^---" 6 't) 4)
-        (progn
-          (goto-char (+ (point-min) 3))
-          (if (search-forward-regexp "^---" (point-max) 't)
-            (let ((bound (point)))
-              (goto-char (point-min))
-              (if (search-forward-regexp "^permalink: \\(.*\\)$" bound 't)
-                (setq path-name (match-string 1)))))))))
+      (let ((start (search-forward-regexp "^---" 6 't)))
+        (if (and start (= start 4))
+          (progn
+            (goto-char (+ (point-min) 3))
+            (if (search-forward-regexp "^---" (point-max) 't)
+              (let ((bound (point)))
+                (goto-char (point-min))
+                (if (search-forward-regexp "^permalink: \\(.*\\)$" bound 't)
+                  (setq path-name (match-string 1))))))))))
   path-name)
 
 (defun jekyll-fix-path-name (file-name path-name)
   "Work out the pathname that FILE-NAME will be served at (PATH-NAME is our best guess right now)."
-  (setq path-name (replace-regexp-in-string "\\.md$" ".html" path-name))
+  (setq path-name (file-name-sans-extension path-name))
   (jekyll-get-permalink-from-file file-name
     (cond
       ((string-match "^/_posts/\\([0-9][0-9][0-9][0-9]\\)-\\([0-9][0-9]\\)-[0-9][0-9]-\\(.*\\)" path-name)
@@ -118,7 +123,6 @@ START-COMMAND the command to start a server."
 
 (defun jekyll-server-start (directory port file-name)
   "Start a Jekyll server for DIRECTORY on PORT and open FILE-NAME."
-  (require 'rvm)
   (rvm-use-default)
   (let* (
           (url (concat "http://localhost:" (number-to-string port)
@@ -170,12 +174,12 @@ Prefix arg \[universal-argument] to not run local server and open on github or v
           "$p = `git -C $d rev-parse --show-prefix`; "
           "chomp($o, $p); "
           "if ($o) { print \"$o/blob/master/$p$b\"; } else { print \"file://$f\" }' "
-          (shell-quote-argument (buffer-file-name)) ")#L"
+          (shell-quote-argument (buffer-file-name)) ")"
           (if (region-active-p)
-            (concat
-              (number-to-string (line-number-at-pos (region-beginning))) "-"
-              (number-to-string (line-number-at-pos (region-end))))
-            (number-to-string (line-number-at-pos)))
+            (concat "#L"
+              (number-to-string (line-number-at-pos (region-beginning))) "-L"
+              (number-to-string (line-number-at-pos (- (region-end) 1) )))
+            (if (> (line-number-at-pos) 1) (concat "#L" (number-to-string (line-number-at-pos))) ""))
           "\"")
         nil 0))))
 
