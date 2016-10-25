@@ -12,7 +12,9 @@ Gem::Specification.new do |s|
   s.description = %q{Runs a webserver to preview Github markdown with live.js updating.}
   s.license     = 'MIT'
 
-  s.add_dependency 'github-markdown-preview', '~> 3.1', '>= 3.1.3'
+  s.add_dependency 'github-markdown-preview', '~> 4.0'
+  s.add_dependency 'github-linguist', '~> 3.3'
+  s.add_dependency 'rugged', '~> 0.23'
 
   s.add_development_dependency 'minitest', '~> 5.4'
   s.add_development_dependency 'bundler', '~> 1.7'
