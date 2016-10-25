@@ -173,7 +173,8 @@ Prefix arg \[universal-argument] to not run local server and open on github or v
           "} else { $o = \"\" }"
           "$p = `git -C $d rev-parse --show-prefix`; "
           "chomp($o, $p); "
-          "if ($o) { print \"$o/blob/master/$p$b\"; } else { print \"file://$f\" }' "
+          "$lc = `git log -1 --pretty=format:%h`; "
+          "if ($o) { print \"$o/blob/$lc/$p$b\"; } else { print \"file://$f\" }' "
           (shell-quote-argument (buffer-file-name)) ")"
           (if (region-active-p)
             (concat "#L"
