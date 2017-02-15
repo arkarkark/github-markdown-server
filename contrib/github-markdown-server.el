@@ -9,6 +9,10 @@
 ;;; Uncommenthing this _might_ work (untested)
 ;;; (defun rvm-use-default () ".") (provide 'rvm)
 
+;;; I bind some things to keys like this:
+;;; (global-set-key [(control f1)]		'view-file-in-browser)
+;;; (global-set-key [(shift control f1)]	'copy-file-url-to-clipboard)
+
 ;;; Code:
 
 (require 'cl-lib)
@@ -144,6 +148,19 @@ START-COMMAND the command to start a server."
   (ark-reuse-or-start-server file-name 'jekyll-server-start 'jekyll-fix-path-name)
   )
 
+(defun shell-command-to-get-file-url (file-name)
+  "Make a shell command will get the file url. FILE-NAME the filename to get the url for."
+  (concat
+    "perl -e 'use File::Basename; $f = shift @ARGV; $d = dirname($f); $b = basename($f); "
+    "$o = `git -C $d config --get remote.origin.url`; "
+    "if ($o =~ qr!git(@|://)github.com[:/]!) { "
+    "  $o =~ s!git(@|://)github.com[:/](.*).git$!https://github.com/$2!; "
+    "} else { $o = \"\" }"
+    "$p = `git -C $d rev-parse --show-prefix`; "
+    "chomp($o, $p); "
+    "$lc = `git log -1 --pretty=format:%h`; "
+    "if ($o) { print \"$o/blob/$lc/$p$b\"; } else { print \"file://$f\" }' "
+    (shell-quote-argument file-name)))
 
 (defun view-file-in-browser (&optional file-name)
   "Open up file in one of four ways.
@@ -166,16 +183,8 @@ Prefix arg \[universal-argument] to not run local server and open on github or v
         ;; open either on github or a local file (the remove.origin.url stuff)
         (concat "open -a \"$(VERSIONER_PERL_PREFER_32_BIT=1 "
           "perl -MMac::InternetConfig -le 'print +(GetICHelper \"http\")[1]')\" \"$("
-          "perl -e 'use File::Basename; $f = shift @ARGV; $d = dirname($f); $b = basename($f); "
-          "$o = `git -C $d config --get remote.origin.url`; "
-          "if ($o =~ qr!git(@|://)github.com[:/]!) { "
-          "  $o =~ s!git(@|://)github.com[:/](.*).git$!https://github.com/$2!; "
-          "} else { $o = \"\" }"
-          "$p = `git -C $d rev-parse --show-prefix`; "
-          "chomp($o, $p); "
-          "$lc = `git log -1 --pretty=format:%h`; "
-          "if ($o) { print \"$o/blob/$lc/$p$b\"; } else { print \"file://$f\" }' "
-          (shell-quote-argument (buffer-file-name)) ")"
+	  (shell-command-to-get-file-url file-name)
+	  ")"
           (if (region-active-p)
             (concat "#L"
               (number-to-string (line-number-at-pos (region-beginning))) "-L"
@@ -183,6 +192,11 @@ Prefix arg \[universal-argument] to not run local server and open on github or v
             (if (> (line-number-at-pos) 1) (concat "#L" (number-to-string (line-number-at-pos))) ""))
           "\"")
         nil 0))))
+
+(defun copy-file-url-to-clipboard (&optional file-name)
+  "Put the url to access FILE-NAME in the copy buffer."
+  (interactive (list (buffer-file-name)))
+  (call-process-shell-command (concat (shell-command-to-get-file-url file-name) " | pbcopy")))
 
 (provide 'github-markdown-server)
 ;;; github-markdown-server ends here
