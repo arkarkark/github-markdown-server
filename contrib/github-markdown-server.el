@@ -151,6 +151,7 @@ START-COMMAND the command to start a server."
 (defun shell-command-to-get-file-url (file-name)
   "Make a shell command will get the file url. FILE-NAME the filename to get the url for."
   (concat
+    "$("
     "perl -e 'use File::Basename; $f = shift @ARGV; $d = dirname($f); $b = basename($f); "
     "$o = `git -C $d config --get remote.origin.url`; "
     "if ($o =~ qr!git(@|://)github.com[:/]!) { "
@@ -160,7 +161,14 @@ START-COMMAND the command to start a server."
     "chomp($o, $p); "
     "$lc = `git log -1 --pretty=format:%h`; "
     "if ($o) { print \"$o/blob/$lc/$p$b\"; } else { print \"file://$f\" }' "
-    (shell-quote-argument file-name)))
+    (shell-quote-argument file-name)
+    ")"
+    (if (region-active-p)
+      (concat "#L"
+	(number-to-string (line-number-at-pos (region-beginning))) "-L"
+	(number-to-string (line-number-at-pos (- (region-end) 1) )))
+      (if (> (line-number-at-pos) 1) (concat "#L" (number-to-string (line-number-at-pos))) ""))
+    ))
 
 (defun view-file-in-browser (&optional file-name)
   "Open up file in one of four ways.
@@ -182,21 +190,15 @@ Prefix arg \[universal-argument] to not run local server and open on github or v
         ;; open it with the default webbrowser The Mac::InternetConfig stuff)
         ;; open either on github or a local file (the remove.origin.url stuff)
         (concat "open -a \"$(VERSIONER_PERL_PREFER_32_BIT=1 "
-          "perl -MMac::InternetConfig -le 'print +(GetICHelper \"http\")[1]')\" \"$("
+          "perl -MMac::InternetConfig -le 'print +(GetICHelper \"http\")[1]')\" \""
 	  (shell-command-to-get-file-url file-name)
-	  ")"
-          (if (region-active-p)
-            (concat "#L"
-              (number-to-string (line-number-at-pos (region-beginning))) "-L"
-              (number-to-string (line-number-at-pos (- (region-end) 1) )))
-            (if (> (line-number-at-pos) 1) (concat "#L" (number-to-string (line-number-at-pos))) ""))
           "\"")
         nil 0))))
 
 (defun copy-file-url-to-clipboard (&optional file-name)
   "Put the url to access FILE-NAME in the copy buffer."
   (interactive (list (buffer-file-name)))
-  (call-process-shell-command (concat (shell-command-to-get-file-url file-name) " | pbcopy")))
+  (call-process-shell-command (concat "echo \"" (shell-command-to-get-file-url file-name) "\" | pbcopy")))
 
 (provide 'github-markdown-server)
 ;;; github-markdown-server ends here
